@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Request Submitted — Sands Car Rental</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<nav>
+  <a href="https://sandshotel.us" class="nav-logo"><span>SANDS HOTEL</span><span>Blytheville, Arkansas</span></a>
+  <div class="nav-links">
+    <a href="/">Car Rental</a>
+    <a href="https://sandshotel.us/book" class="nav-book">Book Room</a>
+  </div>
+</nav>
+
+<div style="max-width:600px;margin:60px auto;padding:0 24px;">
+  <div class="confirm-box">
+    <div class="confirm-icon">⏳</div>
+    <h1>Request submitted!</h1>
+    <p>Thank you, <strong>{{ first_name }}</strong>. Your reservation request has been received and is pending admin review.</p>
+    <div class="ref-badge">{{ ref }}</div>
+    <div class="confirm-details">
+      <div class="cd-row"><span>Vehicle</span><span>{{ car.name }}</span></div>
+      <div class="cd-row"><span>Pick-up</span><span>{{ pickup }}</span></div>
+      <div class="cd-row"><span>Return</span><span>{{ ret }}</span></div>
+      <div class="cd-row"><span>Duration</span><span>{{ days }} day{% if days > 1 %}s{% endif %}</span></div>
+      <div class="cd-row total"><span>Total (on approval)</span><span>${{ "%.2f"|format(total) }}</span></div>
+    </div>
+    <p style="font-size:13px;color:var(--text-light);line-height:1.7;margin-top:20px;">Our team will review your request and contact you within <strong>1–2 hours</strong> by phone or email. You will receive a rental agreement upon approval.</p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap;">
+      <a href="/status/{{ ref }}" class="btn-gold">Check status</a>
+      <a href="/" class="btn-outline">Back to fleet</a>
+    </div>
+    <p style="font-size:12px;color:var(--text-light);margin-top:20px;">Questions? Call us: <a href="tel:+18707634588" style="color:var(--gold);">(870) 763-4588</a></p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-bottom" style="justify-content:center;">
+    <p>© 2026 Sands Hotel &amp; Car Rental, Blytheville AR. All rights reserved.</p>
+  </div>
+</footer>
+</body>
+</html>

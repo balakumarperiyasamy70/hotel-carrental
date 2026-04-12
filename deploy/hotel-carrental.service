@@ -1,0 +1,14 @@
+[Unit]
+Description=Sands Car Rental Flask App
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/opt/hotel-carrental
+Environment="PATH=/opt/hotel-carrental/venv/bin"
+ExecStart=/opt/hotel-carrental/venv/bin/gunicorn -w 2 -b 127.0.0.1:8005 app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

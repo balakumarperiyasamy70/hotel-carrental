@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sands Car Rental — Blytheville, AR</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+<nav>
+  <a href="https://sandshotel.us" class="nav-logo">
+    <span>SANDS HOTEL</span>
+    <span>Blytheville, Arkansas</span>
+  </a>
+  <div class="nav-links">
+    <a href="https://sandshotel.us">Hotel</a>
+    <a href="https://sandshotel.us/rooms">Rooms</a>
+    <a href="https://sandshotel.us/cab">🚕 City Cab</a>
+    <a href="#" class="active">Car Rental</a>
+    <a href="https://sandshotel.us/book" class="nav-book">Book Room</a>
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<section class="hero">
+  <div class="hero-tag">Sands Hotel Services</div>
+  <h1>Car Rental in<br/><em>Blytheville, AR</em></h1>
+  <p>Quality vehicles, simple booking, and honest pricing — for our guests and the local community.</p>
+  <div class="hero-btns">
+    <a href="#fleet" class="btn-gold">Browse Fleet</a>
+    <a href="#how" class="btn-outline">How It Works</a>
+  </div>
+</section>
+
+<div class="search-section">
+  <div class="search-box">
+    <h3>Check Availability</h3>
+    <div class="search-grid">
+      <div class="form-field">
+        <label>Pick-up location</label>
+        <select id="s-location">
+          <option>Sands Hotel — 357 S Division St</option>
+          <option>Blytheville Municipal Airport</option>
+          <option>Downtown Blytheville</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Pick-up date</label>
+        <input type="date" id="s-pickup"/>
+      </div>
+      <div class="form-field">
+        <label>Return date</label>
+        <input type="date" id="s-return"/>
+      </div>
+      <div class="form-field">
+        <label>Vehicle type</label>
+        <select id="s-type">
+          <option value="">All types</option>
+          <option>Economy</option>
+          <option>SUV</option>
+          <option>Luxury</option>
+          <option>Pickup Truck</option>
+          <option>Van</option>
+          <option>Electric</option>
+        </select>
+      </div>
+      <button class="search-btn" onclick="filterFleet()">Search</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">{{ fleet|length }}+</div><div class="stat-label">Vehicles</div></div>
+  <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Support</div></div>
+  <div class="stat"><div class="stat-num">500+</div><div class="stat-label">Happy renters</div></div>
+  <div class="stat"><div class="stat-num">4.9★</div><div class="stat-label">Avg rating</div></div>
+</div>
+
+<section class="section" id="fleet">
+  <div class="section-header">
+    <span class="section-tag">Our Fleet</span>
+    <h2>Choose Your Ride</h2>
+    <p>All vehicles include insurance, GPS, and 24/7 roadside assistance.</p>
+    <div class="divider-gold"></div>
+  </div>
+  <div class="fleet-grid" id="fleet-grid">
+    {% for car in fleet %}
+    <div class="car-card" data-type="{{ car.category }}">
+      <div class="car-img">{{ car.icon }}</div>
+      <div class="car-body">
+        <div class="car-badge">{{ car.category }}</div>
+        <div class="car-name">{{ car.name }}</div>
+        <div class="car-sub">{{ car.transmission }} · {{ car.year }} Model</div>
+        <div class="car-specs">
+          <span class="spec">{{ car.seats }} seats</span>
+          {% for f in car.features.split(',') %}
+          <span class="spec">{{ f.strip() }}</span>
+          {% endfor %}
+        </div>
+        <div class="car-footer">
+          <div class="car-price">${{ "%.0f"|format(car.daily_rate) }} <small>/ day</small></div>
+          <button class="btn-rent" onclick="openBooking({{ car.id }}, '{{ car.name }}', '{{ car.category }}', {{ car.daily_rate }}, '{{ car.icon }}')">Reserve</button>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <p style="color:#888;grid-column:1/-1;text-align:center;padding:40px 0;">No vehicles available at this time. Please call us at (870) 763-4588.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section" id="how" style="background:#fafafa;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section-header">
+    <span class="section-tag">Simple Process</span>
+    <h2>How It Works</h2>
+    <p>Rent a car in 4 easy steps — no surprises, no hidden fees.</p>
+    <div class="divider-gold"></div>
+  </div>
+  <div class="steps">
+    <div class="step-item"><div class="step-num">1</div><div class="step-title">Choose your car</div><div class="step-desc">Browse our fleet and pick the vehicle that fits your needs.</div></div>
+    <div class="step-item"><div class="step-num">2</div><div class="step-title">Submit request</div><div class="step-desc">Fill in your details and rental dates. We review every request personally.</div></div>
+    <div class="step-item"><div class="step-num">3</div><div class="step-title">Get approved</div><div class="step-desc">We confirm availability and send your rental agreement.</div></div>
+    <div class="step-item"><div class="step-num">4</div><div class="step-title">Pay &amp; drive</div><div class="step-desc">Pick up your keys at the Sands Hotel front desk.</div></div>
+  </div>
+</section>
+
+<section class="why-section">
+  <div class="section-header">
+    <span class="section-tag">Why Choose Us</span>
+    <h2 style="color:var(--white);">Local. Trusted. Simple.</h2>
+    <div class="divider-gold"></div>
+  </div>
+  <div class="why-grid">
+    <div class="why-card"><div class="why-icon">🏨</div><div class="why-title">Hotel convenience</div><div class="why-desc">Pick up and drop off right at Sands Hotel. No extra trips.</div></div>
+    <div class="why-card"><div class="why-icon">💰</div><div class="why-title">Honest pricing</div><div class="why-desc">What you see is what you pay. No hidden fees.</div></div>
+    <div class="why-card"><div class="why-icon">🛡️</div><div class="why-title">Full coverage</div><div class="why-desc">Insurance is included in every rental.</div></div>
+    <div class="why-card"><div class="why-icon">📞</div><div class="why-title">24/7 support</div><div class="why-desc">Our front desk team is always available day or night.</div></div>
+  </div>
+</section>
+
+<section class="reviews-section">
+  <div class="section-header">
+    <span class="section-tag">Guest Reviews</span>
+    <h2>What Renters Say</h2>
+    <div class="divider-gold"></div>
+  </div>
+  <div class="reviews-grid">
+    <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Pickup was easy right at the hotel — car was spotless. Will use again for sure."</div><div class="review-author"><div class="review-avatar">JM</div><div><div class="review-name">James M.</div><div class="review-loc">Blytheville, AR</div></div></div></div>
+    <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Best rates in the area. Approval was fast — heard back in under an hour."</div><div class="review-author"><div class="review-avatar">SR</div><div><div class="review-name">Sofia R.</div><div class="review-loc">Memphis, TN</div></div></div></div>
+    <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Needed a truck for moving furniture. The F-150 was perfect and staff was incredibly helpful."</div><div class="review-author"><div class="review-avatar">DK</div><div><div class="review-name">David K.</div><div class="review-loc">Jonesboro, AR</div></div></div></div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <span class="section-tag">Get Started</span>
+  <h2>Ready to hit the road?</h2>
+  <p>Browse our fleet above or call the Sands Hotel front desk to reserve your vehicle today.</p>
+  <div class="hero-btns">
+    <a href="#fleet" class="btn-gold">Browse fleet</a>
+    <a href="tel:+18707634588" class="btn-outline">📞 (870) 763-4588</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span>SANDS CAR RENTAL</span>
+      <p>Quality vehicles and friendly service in Blytheville, Arkansas. A proud extension of Sands Hotel.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Fleet</h4>
+      <a href="#fleet">Economy cars</a>
+      <a href="#fleet">SUVs</a>
+      <a href="#fleet">Luxury vehicles</a>
+      <a href="#fleet">Pickup trucks</a>
+    </div>
+    <div class="footer-col">
+      <h4>Information</h4>
+      <a href="#how">How it works</a>
+      <a href="#fleet">Pricing</a>
+      <a href="#">Terms &amp; conditions</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <a href="#">📍 357 S Division St, Blytheville AR 72315</a>
+      <a href="tel:+18707634588">📞 (870) 763-4588</a>
+      <a href="mailto:rental@sandshotel.us">✉ rental@sandshotel.us</a>
+      <a href="https://sandshotel.us">🏨 Main hotel site</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Sands Hotel &amp; Car Rental, Blytheville AR. All rights reserved.</p>
+    <p>carrental.sandshotel.us</p>
+  </div>
+</footer>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-heading">Reserve a Vehicle</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form method="POST" action="/book" id="booking-form">
+      <input type="hidden" name="fleet_id" id="fleet_id"/>
+      <div class="modal-body">
+        <div class="modal-car-info" id="modal-car-info"></div>
+        <div class="stepper">
+          <div class="step-tab active" id="tab1">1 · Your details</div>
+          <div class="step-tab" id="tab2">2 · Rental dates</div>
+          <div class="step-tab" id="tab3">3 · Review</div>
+        </div>
+
+        <div id="mstep1">
+          <div class="form-row">
+            <div class="field"><label>First name *</label><input name="first_name" required placeholder="John"/></div>
+            <div class="field"><label>Last name *</label><input name="last_name" required placeholder="Smith"/></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Email *</label><input name="email" type="email" required placeholder="john@email.com"/></div>
+            <div class="field"><label>Phone *</label><input name="phone" type="tel" required placeholder="(870) 555-0000"/></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Home address</label><input name="address" placeholder="123 Main St, Blytheville AR"/></div>
+            <div class="field"><label>Driver's license # *</label><input name="license_no" required placeholder="DL-123456789"/></div>
+          </div>
+          <div class="form-row single">
+            <div class="field"><label>License state</label>
+              <select name="license_state">
+                <option>Arkansas</option><option>Tennessee</option><option>Mississippi</option>
+                <option>Missouri</option><option>Texas</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="mstep2" style="display:none;">
+          <div class="form-row">
+            <div class="field"><label>Pick-up location *</label>
+              <select name="pickup_location">
+                <option>Sands Hotel — 357 S Division St</option>
+                <option>Blytheville Municipal Airport</option>
+                <option>Downtown Blytheville</option>
+              </select>
+            </div>
+            <div class="field"><label>Drop-off location *</label>
+              <select name="dropoff_location">
+                <option>Same as pick-up</option>
+                <option>Sands Hotel — 357 S Division St</option>
+                <option>Blytheville Municipal Airport</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Pick-up date *</label><input name="pickup_date" id="m-pickup" type="date" required/></div>
+            <div class="field"><label>Return date *</label><input name="return_date" id="m-return" type="date" required/></div>
+          </div>
+          <div class="form-row single">
+            <div class="field"><label>Special requests</label><textarea name="notes" placeholder="Any notes for our team..."></textarea></div>
+          </div>
+        </div>
+
+        <div id="mstep3" style="display:none;">
+          <div class="fee-box" id="fee-box"></div>
+          <p style="font-size:12px;color:var(--text-light);line-height:1.6;margin-top:12px;">By submitting this request you agree to our rental terms &amp; conditions. Payment is only required after admin approval. You will be contacted within 1–2 hours.</p>
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+        <button type="button" class="btn-modal-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

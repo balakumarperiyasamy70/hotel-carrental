@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Dashboard — Sands Car Rental</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}"/>
+</head>
+<body>
+
+<div class="admin-topbar">
+  <div class="admin-logo">SANDS CAR RENTAL <span>Admin</span></div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span style="font-size:13px;color:#aaa;">{{ session.admin_name }}</span>
+    <a href="/admin/logout" style="font-size:12px;color:var(--gold);border:1px solid var(--gold);padding:5px 14px;border-radius:3px;">Sign out</a>
+  </div>
+</div>
+
+<div class="admin-layout">
+  <div class="admin-sidebar">
+    <a href="#bookings" class="snav active" onclick="showTab('bookings',this)">📋 Bookings <span class="badge-cnt">{{ stats.pending }}</span></a>
+    <a href="#fleet"    class="snav"        onclick="showTab('fleet',this)">🚗 Fleet</a>
+    <a href="#stats"    class="snav"        onclick="showTab('stats',this)">💰 Revenue</a>
+    <a href="/" target="_blank" class="snav" style="margin-top:auto;">🌐 View site</a>
+  </div>
+
+  <div class="admin-main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat,msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <!-- BOOKINGS TAB -->
+    <div class="tab-panel active" id="tab-bookings">
+      <div class="panel-title">Bookings</div>
+
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Pending</div><div class="metric-value" style="color:#BA7517;">{{ stats.pending }}</div></div>
+        <div class="metric"><div class="metric-label">Active rentals</div><div class="metric-value" style="color:#185FA5;">{{ stats.active }}</div></div>
+        <div class="metric"><div class="metric-label">Total bookings</div><div class="metric-value">{{ stats.total }}</div></div>
+        <div class="metric"><div class="metric-label">Revenue</div><div class="metric-value" style="color:#3B6D11;">${{ "%.0f"|format(stats.revenue) }}</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="fbtn active" onclick="filterBookings('all',this)">All</button>
+        <button class="fbtn" onclick="filterBookings('pending',this)">Pending</button>
+        <button class="fbtn" onclick="filterBookings('approved',this)">Approved</button>
+        <button class="fbtn" onclick="filterBookings('active',this)">Active</button>
+        <button class="fbtn" onclick="filterBookings('declined',this)">Declined</button>
+        <button class="fbtn" onclick="filterBookings('completed',this)">Completed</button>
+        <input class="fsearch" placeholder="Search name or ref..." oninput="searchBookings(this.value)"/>
+      </div>
+
+      <div class="table-wrap">
+        <table id="bookings-table">
+          <thead><tr>
+            <th>Ref</th><th>Customer</th><th>Vehicle</th><th>Dates</th><th>Total</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+          {% for b in bookings %}
+          <tr class="brow" data-status="{{ b.status }}" data-search="{{ b.first_name|lower }} {{ b.last_name|lower }} {{ b.ref|lower }}">
+            <td style="font-weight:700;color:#185FA5;">{{ b.ref }}</td>
+            <td>{{ b.first_name }} {{ b.last_name }}<br/><span style="font-size:11px;color:#888;">{{ b.email }}</span></td>
+            <td style="color:#666;font-size:13px;">{{ b.car_name or '—' }}<br/><span style="font-size:11px;">{{ b.category or '' }}</span></td>
+            <td style="font-size:12px;color:#666;">{{ b.pickup_date }}<br/>→ {{ b.return_date }}</td>
+            <td style="font-weight:700;">${{ "%.2f"|format(b.total) }}</td>
+            <td><span class="badge b-{{ b.status }}">{{ b.status|capitalize }}</span></td>
+            <td>
+              <div class="action-btns">
+                <!-- Agreement PDF -->
+                <a href="/admin/booking/{{ b.id }}/agreement" class="abtn abtn-pdf" title="Download agreement">PDF</a>
+
+                {% if b.status == 'pending' %}
+                <!-- Approve -->
+                <button class="abtn abtn-approve" onclick="openAction({{ b.id }},'approve','{{ b.ref }}','{{ b.first_name }} {{ b.last_name }}')">Approve</button>
+                <!-- Decline -->
+                <button class="abtn abtn-decline" onclick="openAction({{ b.id }},'decline','{{ b.ref }}','{{ b.first_name }} {{ b.last_name }}')">Decline</button>
+
+                {% elif b.status == 'approved' %}
+                <form method="POST" action="/admin/booking/{{ b.id }}/activate" style="display:inline;">
+                  <button class="abtn abtn-active" type="submit">Mark active</button>
+                </form>
+
+                {% elif b.status == 'active' %}
+                <form method="POST" action="/admin/booking/{{ b.id }}/complete" style="display:inline;">
+                  <button class="abtn abtn-complete" type="submit">Complete</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" style="text-align:center;padding:32px;color:#888;">No bookings yet.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FLEET TAB -->
+    <div class="tab-panel" id="tab-fleet">
+      <div class="panel-title">Fleet management</div>
+      <div class="fleet-grid">
+        {% for car in fleet %}
+        <div class="fcard">
+          <div class="fcard-icon">{{ car.icon }}</div>
+          <div class="fcard-name">{{ car.name }}</div>
+          <div class="fcard-type">{{ car.category }} · {{ car.transmission }}</div>
+          <div class="fcard-row"><span>Daily rate</span><span>${{ "%.0f"|format(car.daily_rate) }}</span></div>
+          <div class="fcard-row"><span>Plate</span><span>{{ car.plate or '—' }}</span></div>
+          <div class="fcard-row"><span>Color</span><span>{{ car.color or '—' }}</span></div>
+          <div class="fcard-row"><span>Status</span>
+            <span><span class="badge b-{{ car.status }}">{{ car.status|capitalize }}</span></span>
+          </div>
+          <form method="POST" action="/admin/fleet/{{ car.id }}/status" style="margin-top:10px;display:flex;gap:6px;">
+            <select name="status" style="flex:1;font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;">
+              <option {% if car.status=='available' %}selected{% endif %}>available</option>
+              <option {% if car.status=='rented' %}selected{% endif %}>rented</option>
+              <option {% if car.status=='maintenance' %}selected{% endif %}>maintenance</option>
+            </select>
+            <button type="submit" class="abtn abtn-pdf">Update</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div style="margin-top:32px;">
+        <div class="panel-title" style="font-size:16px;">Add vehicle</div>
+        <form method="POST" action="/admin/fleet/add" class="add-fleet-form">
+          <div class="af-grid">
+            <div class="field"><label>Name</label><input name="name" required placeholder="Toyota Camry"/></div>
+            <div class="field"><label>Category</label>
+              <select name="category">
+                <option>Economy</option><option>SUV</option><option>Luxury</option>
+                <option>Pickup Truck</option><option>Van</option><option>Electric</option>
+              </select>
+            </div>
+            <div class="field"><label>Year</label><input name="year" type="number" required placeholder="2023"/></div>
+            <div class="field"><label>Transmission</label>
+              <select name="transmission"><option>Automatic</option><option>Manual</option></select>
+            </div>
+            <div class="field"><label>Seats</label><input name="seats" type="number" required placeholder="5"/></div>
+            <div class="field"><label>Daily rate ($)</label><input name="daily_rate" type="number" step="0.01" required placeholder="65.00"/></div>
+            <div class="field"><label>Plate</label><input name="plate" placeholder="AR-0000"/></div>
+            <div class="field"><label>Color</label><input name="color" placeholder="Silver"/></div>
+            <div class="field"><label>Icon (emoji)</label><input name="icon" placeholder="🚗" maxlength="4"/></div>
+            <div class="field" style="grid-column:1/-1;"><label>Features (comma-separated)</label><input name="features" placeholder="AC,Bluetooth,Sunroof"/></div>
+          </div>
+          <button type="submit" class="btn-gold" style="margin-top:14px;">Add vehicle</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- STATS TAB -->
+    <div class="tab-panel" id="tab-stats">
+      <div class="panel-title">Revenue overview</div>
+      <div class="metrics" style="grid-template-columns:repeat(3,1fr);">
+        <div class="metric"><div class="metric-label">Total revenue</div><div class="metric-value" style="color:#3B6D11;">${{ "%.2f"|format(stats.revenue) }}</div></div>
+        <div class="metric"><div class="metric-label">Total bookings</div><div class="metric-value">{{ stats.total }}</div></div>
+        <div class="metric"><div class="metric-label">Active now</div><div class="metric-value" style="color:#185FA5;">{{ stats.active }}</div></div>
+      </div>
+      <div class="table-wrap" style="margin-top:24px;">
+        <table>
+          <thead><tr><th>Ref</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+          {% for b in bookings %}
+          {% if b.status in ['approved','active','completed'] %}
+          <tr>
+            <td style="color:#185FA5;font-weight:700;">{{ b.ref }}</td>
+            <td>{{ b.first_name }} {{ b.last_name }}</td>
+            <td style="color:#666;">{{ b.car_name or '—' }}</td>
+            <td style="font-weight:700;">${{ "%.2f"|format(b.total) }}</td>
+            <td><span class="badge b-{{ b.status }}">{{ b.status|capitalize }}</span></td>
+            <td style="font-size:12px;color:#888;">{{ b.created_at.strftime('%b %d, %Y') if b.created_at else '—' }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE / DECLINE MODAL -->
+<div class="modal-overlay" id="action-modal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <h3 id="action-title">Review booking</h3>
+      <button class="modal-close" onclick="closeActionModal()">✕</button>
+    </div>
+    <form id="action-form" method="POST">
+      <div class="modal-body">
+        <p id="action-desc" style="font-size:13px;color:#666;margin-bottom:14px;"></p>
+        <div class="field">
+          <label>Note to customer (optional)</label>
+          <textarea name="admin_note" rows="3" placeholder="Write a message to the customer..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeActionModal()">Cancel</button>
+        <button type="submit" class="btn-modal-primary" id="action-submit-btn">Confirm</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

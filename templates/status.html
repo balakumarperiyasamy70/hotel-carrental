@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Booking Status — Sands Car Rental</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<nav>
+  <a href="https://sandshotel.us" class="nav-logo"><span>SANDS HOTEL</span><span>Blytheville, Arkansas</span></a>
+  <div class="nav-links">
+    <a href="/">Car Rental</a>
+    <a href="https://sandshotel.us/book" class="nav-book">Book Room</a>
+  </div>
+</nav>
+
+<div style="max-width:600px;margin:60px auto;padding:0 24px;">
+  <div class="confirm-box">
+    {% if booking.status == 'pending' %}
+      <div class="confirm-icon">⏳</div>
+      <h1>Pending review</h1>
+      <p>Your request is being reviewed by our team. We'll contact you within 1–2 hours.</p>
+    {% elif booking.status == 'approved' %}
+      <div class="confirm-icon" style="background:#EAF3DE;">✓</div>
+      <h1 style="color:#27500A;">Approved!</h1>
+      <p>Your reservation has been approved. Please visit the Sands Hotel front desk to complete payment and pick up your keys.</p>
+      {% if booking.admin_note %}
+      <div style="background:#EAF3DE;border:1px solid #97C459;border-radius:4px;padding:12px 16px;margin:16px 0;font-size:13px;color:#27500A;">
+        <strong>Note from admin:</strong> {{ booking.admin_note }}
+      </div>
+      {% endif %}
+    {% elif booking.status == 'declined' %}
+      <div class="confirm-icon" style="background:#FCEBEB;color:#A32D2D;">✕</div>
+      <h1 style="color:#A32D2D;">Request declined</h1>
+      <p>Unfortunately your request could not be approved at this time.</p>
+      {% if booking.admin_note %}
+      <div style="background:#FCEBEB;border:1px solid #F09595;border-radius:4px;padding:12px 16px;margin:16px 0;font-size:13px;color:#A32D2D;">
+        <strong>Reason:</strong> {{ booking.admin_note }}
+      </div>
+      {% endif %}
+    {% elif booking.status == 'active' %}
+      <div class="confirm-icon" style="background:#E6F1FB;">🚗</div>
+      <h1 style="color:#185FA5;">Active rental</h1>
+      <p>Your rental is currently active. Safe travels!</p>
+    {% else %}
+      <div class="confirm-icon">✓</div>
+      <h1>{{ booking.status|capitalize }}</h1>
+    {% endif %}
+
+    <div class="ref-badge">{{ booking.ref }}</div>
+    <div class="confirm-details">
+      <div class="cd-row"><span>Vehicle</span><span>{{ booking.car_name or '—' }}</span></div>
+      <div class="cd-row"><span>Pick-up</span><span>{{ booking.pickup_date }}</span></div>
+      <div class="cd-row"><span>Return</span><span>{{ booking.return_date }}</span></div>
+      <div class="cd-row"><span>Location</span><span>{{ booking.pickup_location or '—' }}</span></div>
+      <div class="cd-row total"><span>Total</span><span>${{ "%.2f"|format(booking.total) }}</span></div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap;">
+      <a href="/" class="btn-outline">Back to fleet</a>
+    </div>
+    <p style="font-size:12px;color:var(--text-light);margin-top:16px;">Questions? Call: <a href="tel:+18707634588" style="color:var(--gold);">(870) 763-4588</a></p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-bottom" style="justify-content:center;">
+    <p>© 2026 Sands Hotel &amp; Car Rental, Blytheville AR. All rights reserved.</p>
+  </div>
+</footer>
+</body>
+</html>

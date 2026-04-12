@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Login — Sands Car Rental</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body style="background:#f5f5f5;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+<div style="background:#fff;border-radius:6px;border-top:3px solid var(--gold);padding:40px;width:100%;max-width:400px;margin:20px;">
+  <div style="text-align:center;margin-bottom:28px;">
+    <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);">SANDS CAR RENTAL</div>
+    <div style="font-size:13px;color:var(--text-light);margin-top:4px;">Admin Panel</div>
+  </div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat,msg in messages %}
+    <div class="flash flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+  <form method="POST">
+    <div class="field" style="margin-bottom:14px;">
+      <label>Username</label>
+      <input name="username" required autofocus placeholder="admin"/>
+    </div>
+    <div class="field" style="margin-bottom:20px;">
+      <label>Password</label>
+      <input name="password" type="password" required placeholder="••••••••"/>
+    </div>
+    <button type="submit" class="btn-gold" style="width:100%;padding:11px;font-size:14px;border:none;cursor:pointer;">Sign in</button>
+  </form>
+  <p style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-light);"><a href="/" style="color:var(--gold);">← Back to website</a></p>
+</div>
+</body>
+</html>
