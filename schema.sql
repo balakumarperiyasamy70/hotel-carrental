@@ -64,6 +64,6 @@ INSERT INTO fleet (name, category, year, transmission, seats, daily_rate, plate,
 ('Mercedes Sprinter', 'Van',          2022, 'Manual',   12,  95.00, 'AR-3310', 'White',  'AC,Cargo Space',      '🚐'),
 ('Tesla Model 3',     'Electric',     2024, 'Automatic', 5, 110.00, 'AR-7799', 'Blue',   'Autopilot,350mi Range,Premium', '⚡');
 
--- Seed admin user (password: CarRentalAdmin2026!)
+-- Seed admin user (password: ########!)
 INSERT INTO admin_users (username, password_hash, name) VALUES
 ('admin', 'pbkdf2:sha256:600000$placeholder$placeholder', 'Admin');
