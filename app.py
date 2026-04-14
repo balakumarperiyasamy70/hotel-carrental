@@ -21,6 +21,18 @@ from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 
 load_dotenv()
 app = Flask(__name__)
+
+import urllib.request, urllib.parse
+RECAPTCHA_SECRET = '6LezIZwsAAAAAC4wfNWUsFejww_H9yITQuPkmazz'
+
+def verify_recaptcha(token):
+    try:
+        data = urllib.parse.urlencode({'secret': RECAPTCHA_SECRET, 'response': token}).encode()
+        req = urllib.request.urlopen('https://www.google.com/recaptcha/api/siteverify', data, timeout=5)
+        result = __import__('json').loads(req.read().decode())
+        return result.get('success', False)
+    except Exception:
+        return False
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
 
 # ── DB ──────────────────────────────────────────────────────────────────────
@@ -72,6 +84,10 @@ def index():
 @app.route('/book', methods=['POST'])
 def book():
     data = request.form
+    recaptcha_token = data.get('g-recaptcha-response', '')
+    if not verify_recaptcha(recaptcha_token):
+        flash('reCAPTCHA verification failed. Please try again.', 'error')
+        return redirect(url_for('index'))
     fleet_id  = data.get('fleet_id')
     pickup    = data.get('pickup_date')
     ret       = data.get('return_date')
