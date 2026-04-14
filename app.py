@@ -5,7 +5,7 @@ from datetime import datetime, date
 from functools import wraps
 from io import BytesIO
 
-import PyMySQL
+import pymysql
 from dotenv import load_dotenv
 from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, jsonify, send_file, abort)
@@ -26,13 +26,13 @@ app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
 # ── DB ──────────────────────────────────────────────────────────────────────
 
 def get_db():
-    return PyMySQL.connect(
+    return pymysql.connect(
         host=os.getenv('DB_HOST', '127.0.0.1'),
         port=int(os.getenv('DB_PORT', 3306)),
         user=os.getenv('DB_USER', 'carrental'),
         password=os.getenv('DB_PASSWORD', ''),
         database=os.getenv('DB_NAME', 'sandscarrental'),
-        cursorclass=PyMySQL.cursors.DictCursor,
+        cursorclass=pymysql.cursors.DictCursor,
         autocommit=True
     )
 
